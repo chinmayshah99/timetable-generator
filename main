@@ -1,0 +1,548 @@
+/*
+ * Computer Science Project
+ * Time Table Generator
+ * Generates Class time table and teacher's time table.
+ */
+#include <iostream> //Input Output Header file
+#include <ctime>
+#include <cstdlib>
+#include<fstream> //Header file for File Handling
+
+using namespace std;
+
+class class_code{
+	public:
+		unsigned int prd[6][6] , std , sub[6][3];
+		char div;
+		int cstatus[6][6];  //Returns 0 if free and -1 if occupied
+		
+		
+                       //constructor ; intializes subcount/day and subcount/day to 0;  and intializes other values
+    class_code()
+		{
+			for (int i=0; i<6 ; i++)
+			{
+				for (int j=0; j<6; j++)
+				{
+					cstatus[i][j] = 0;
+					prd[i][j] = 101;
+				}
+			}
+			for (int i=0; i<6 ; i++)
+			{
+				sub[i][1] = 0;
+				sub[i][2] = 0;
+			}
+		}
+};
+
+class t_code{
+
+		unsigned int checkintime;
+	
+	public:
+		char name[30];
+		unsigned int sub_code;  //Teacher Code
+		int period[6][6];
+		int status[6][6];    //Returns 0 if free and -1 if occupied
+		
+		t_code()
+		{
+			for (int i=0; i<6 ; i++)
+			{
+				for (int j=0; j<6 ; j++)
+				{
+					status[i][j] = 0;		
+					period[i][j] = 99;
+				}
+			}		
+		}
+        void initialize()
+		{
+			unsigned int x ;
+			cin>>checkintime;
+			x = checkintime;
+			x--;
+			//cout<<"enter teacher code";
+			//cin>>teachercode;
+			if (x>0)
+			{
+				for (int i=0; i<6 ; i++)
+				{
+				for (int j=0; j<checkintime ; j++)
+				{
+					status[i][j] = -1;		
+				}
+				}
+			}
+		}	
+};
+		
+
+//FUNCTION DECLARATIONS
+
+int if_class_accepts_that_code(unsigned int,int, class_code[]);
+int check(unsigned int , int, class_code[]);
+int check2(unsigned int k,int j,class_code c[]);
+int it_seems_ok_with_teacher(unsigned int , int , int ,t_code[] );
+void print(class_code c[],int noc);
+int generate(int k,class_code c[]  );
+void changedetails(class_code c[], int k);
+void printteacher(t_code t[], int ,class_code c[],int);
+
+
+
+int noft; //NO OF TEACHERS ; GLOBAL VARIABLE
+
+
+int main()
+{
+	cout<<"Ryan International School,Sanpada"<<endl;
+	cout<<"\n"<<"Subject Codes: \n"
+	<<" 01 Mathematics \n 02 Physics \n 03 Chemistry \n 04 Biology"
+	<<" \n 05 Computer Science \n 06 English \n 07 Physical Education "
+	<<"\n 08 Business Studies \n 09 Accounts \n 10 PT \n  11 Economics\n";
+	cout<<"\n";
+	do
+	{
+  cout<<"ENTER THE NUMBER OF TEACHERS: (Minimum 6)"<<endl;  // Getting Teacher Details
+	cin>>noft;
+  } while(noft<=5);
+  
+	t_code t[noft];
+	
+	for (int i =0; i<noft; i++)
+	{   
+		cout<<"ENTER TEACHER'S NAME: \n";
+
+		cin>>t[i].name;
+		cout<<"ENTER SUBJECT CODE: \n ";
+		cin>>t[i].sub_code;
+	    cout<<"enter checkin time\n";
+		t[i].initialize();
+	}
+	
+	cout<<"ENTER CLASS DETAILS:- \n";  // getting class details 
+	cout<<"ENTER NUMBER OF CLASSES: \n";
+	int noc; // NO OF CLASSES 
+	cin>>noc;
+	class_code c[noc]; // declaring class array
+	
+	for (int i=0; i<noc;i++) //taking class details
+	{
+		cout<<"ENTER STD AND DIV: \n";
+		cin>>c[i].std>>c[i].div;
+		cout <<"ENTER SUBJECT CODES: \n";
+		for (int j=0; j<6 ; j++ )
+		{
+			cin>>c[i].sub[j][0];
+		}
+	}
+	
+	
+	unsigned int x;
+	srand(time(0)); //for using rand()
+	
+	for (int k=0;k<noc;k++)
+	{
+		for (int i=0 ; i<6;i++)
+		{
+			changedetails(c, k ); //clear daily count
+			
+			for (int j=0;j<6;j++)
+			{
+				label:
+					{
+						x = generate(k,c);	// generating random subject code
+						
+						unsigned int a = check(x,k,c);      // check 1 for weekly condition check 
+						{
+						if (a == 77)
+							goto label;
+						else 
+							a = a;
+						}
+						
+						unsigned int q = check2(a , k , c);     // check2 for daily condition 
+						{
+							if (q == 77)
+								goto label;
+							else 
+								q = q;
+						}
+			            unsigned int f = it_seems_ok_with_teacher( q,  i,  j, t);   //check if teacher is free
+                    	{
+                    	if (f == 77)
+							goto label;
+						else 
+							f = f;
+				        }
+						    //update details
+						{ 
+							c[k].cstatus[i][j] = f;  
+							c[k].prd[i][j] = a;
+							t[f].status[i][j] = -1;         // mark teacher as busy 
+							t[f].period[i][j] = k; 
+							for (int p=0; p<6;p++) 
+							{
+								if (a == c[k].sub[p][0])
+								{
+									c[k].sub[p][1]++;  // incremnet weekly count
+									c[k].sub[p][2]++;  // increment daily count 
+								}
+							}
+						}
+					}
+					
+			}
+			
+		}
+	}
+	print(c,noc); //class timetable along with printing to file
+	printteacher( t, noft ,c,noc);   //teachers timetable along with printing to file
+	return 0;
+}
+
+
+int check(unsigned int k,int j,class_code c[])
+{	
+	for (int i=0; i<6;i++)
+	{	
+		if (k == c[j].sub[i][0])
+		{
+			
+			if ( k == 1)
+			{
+				if (c[j].sub[i][1] < 9)
+					return k;
+				else
+					return 77;
+			}
+			
+			else if (k ==2 || k==3 || k==4 || k==8 || k==9 || k==11)
+			{
+				if (c[j].sub[i][1] < 8)
+					return k;
+				else 
+					return 77;
+			}
+			
+			else if ( k == 5 || k == 7 )
+			{
+				if (c[j].sub[i][1] < 7)
+					return k;
+				else 
+					return 77;
+			}
+			else if (k == 6)
+			{
+				if (c[j].sub[i][1] < 5)
+					return k;
+				else 
+					return 77;
+			}
+			else if (k == 10)
+			{
+				if (c[j].sub[i][1] < 2)
+					return k;
+				else 
+					return 77;
+			}
+			
+		}
+    }
+    return 77;
+}
+
+
+int check2(unsigned int k,int j,class_code c[])
+{
+	for (int i = 0 ; i < 6 ; i ++)
+	{
+		if ( k == c[j].sub[i][0])
+		{
+            if (k == 1 || k ==2 || k==3 || k==4 || k==5 || k== 7 || k==8 || k==9 || k==11)
+			{
+				if (c[j].sub[i][2] < 3)
+					return k;
+				else 
+					return 77;
+			}
+			else if ( k == 6 || k == 10 )
+			{
+				if (c[j].sub[i][2] < 2)
+					return k;
+				else
+					return 77;
+			}		
+		}
+	}
+	
+	return 77;
+}
+
+
+int it_seems_ok_with_teacher(unsigned int y, int a, int b, t_code t[])
+{
+	int i = 0;
+	while(i <= noft)
+	
+	{
+		if (t[i].sub_code == y)
+		{
+		
+		if (t[i].status[a][b] == 0)
+		{
+			return i;
+		}
+		else 
+		{
+			i++;
+			continue;
+		}
+		}
+		else if (i == noft)
+			return 77;
+		else 
+		{
+			i++;
+    		continue; 
+    	}
+	}
+	return 77;
+}
+
+
+
+int generate(int k,class_code c[])
+{
+	int z = rand() % 6;
+	return c[k].sub[z][0];
+}
+
+void print(class_code c[],int noc)
+{
+	cout<<"\n";
+	ofstream file1;      //File Handling
+	file1.open("Project.txt",ios::out);
+	for (int k = 0; k<noc;k++)
+	{
+		
+	    cout<<"\n"<<"      Ryan International School, Sanpada"<<endl;
+	    file1<<"\n"<<"      Ryan International School, Sanpada"<<endl;      
+                   //Writing into a file.
+	    cout<<"\n"<<"                 Time Table"<<endl;
+	    file1<<"\n"<<"                 Time Table"<<endl;
+		cout<<"\n"<<"                 Class: "<<c[k].std<<" "<<c[k].div<<endl;
+		file1<<"\n"<<"                 Class: "<<c[k].std<<" "<<c[k].div<<endl;
+		for (int j =0 ; j<6 ;j++)
+		{
+			for (int i =0 ;i<6;i++)
+			{
+				if (c[k].prd[i][j] == 1)
+					{
+					cout<<"MATH"<<"\t";
+					file1<<"MATH"<<"\t";
+					}
+				else if (c[k].prd[i][j] == 2)
+					{
+					cout<<"PHY"<<"\t";
+					file1<<"PHY"<<"\t";
+				    }
+				else if (c[k].prd[i][j] == 3 )
+				    {
+					cout<<"CHEM"<<"\t";
+					file1<<"CHEM"<<"\t";
+				    }
+				else if (c[k].prd[i][j] == 4)
+					{
+					cout<<"BIO"<<"\t";
+					file1<<"BIO"<<"\t";
+				    }
+				else if (c[k].prd[i][j] == 5)
+					{
+					cout<<"COMP"<<"\t";
+					file1<<"COMP"<<"\t";
+				    }
+
+				else if (c[k].prd[i][j] == 6)
+					{
+						cout<<"ENG"<<"\t";
+						file1<<"ENG"<<"\t";
+					}
+				else if (c[k].prd[i][j] == 7)
+					{
+						cout<<"PEd"<<"\t";
+						file1<<"PEd"<<"\t";
+					}
+				else if (c[k].prd[i][j] == 8)
+					{
+						cout<<"BST"<<"\t";
+						file1<<"BST"<<"\t";
+					}
+				else if (c[k].prd[i][j] == 9)
+					{
+						cout<<"ACC"<<"\t";
+						file1<<"ACC"<<"\t";
+					}
+				else if (c[k].prd[i][j] == 10)
+					{
+						cout<<"PT"<<"\t";
+						file1<<"PT"<<"\t";
+					}
+                 else if (c[k].prd[i][j] == 11)
+					{
+						cout<<"ECO"<<"\t";
+						file1<<"ECO"<<"\t";
+					}
+
+			}
+			cout<<"\n";
+			file1<<"\n";
+			
+		}
+		cout<<"\n";
+		for (int i = 0 ; i<6; i++)
+		{
+			cout<<c[k].sub[i][0]<<"\t"<<c[k].sub[i][1]<<" ";
+		}
+	}
+	cout<<"\n";
+	file1.close();
+
+}
+
+void changedetails(class_code c[], int k)
+{
+	for (int i = 0 ; i < 6 ; i++ )
+	{
+		c[k].sub[i][2] = 0;
+	}
+}
+
+
+
+
+/*
+* Generation of Teacher's Time Table.
+*
+*
+*/
+void printteacher(t_code t[], int noft,class_code c[],int noc)
+{ 
+    ofstream file2; //File Handling
+    file2.open("Teacher.txt",ios::out);
+	for (int i = 0; i< noft ; i++)
+	{
+		{
+		
+		cout<<"             Teacher Name: "<<t[i].name<<" "<<endl;
+		cout<<"             Subject Code: "<<t[i].sub_code<<endl;
+		file2<<"             Teacher Name: "<<t[i].name<<" "<<endl;
+		file2<<"             Subject Code: "<<t[i].sub_code<<endl;
+                       //Writing into a file
+		int s = t[i].sub_code;
+		
+		{			if (s == 1)
+					{
+					cout<<"             Subject: MATH"<<"\t";
+					file2<<"               Subject: MATH"<<"\t";
+					}
+				else if (s == 2)
+					{
+					cout<<"             Subject: PHY"<<"\t";
+					file2<<"              Subject: PHY"<<"\t";
+				    }
+				else if (s == 3 )
+				    {
+					cout<<"             Subject: CHEM"<<"\t";
+					file2<<"              Subject: CHEM"<<"\t";
+				    }
+				else if (s == 4)
+					{
+					cout<<"             Subject: BIO"<<"\t";
+					file2<<"              Subject: BIO"<<"\t";
+				    }
+				else if (s == 5)
+					{
+					cout<<"             Subject:  COMP"<<"\t";
+					file2<<"             Subject:  COMP"<<"\t";
+				    }
+				else if (s == 6)
+					{
+					cout<<"             Subject:  ENG"<<"\t";
+					file2<<"              Subject:  ENG"<<"\t";
+					}
+				else if (s == 7)
+					{
+					cout<<"             Subject:  PEd"<<"\t";
+					file2<<"              Subject:  PEd"<<"\t";
+					}
+				else if (s == 8)
+					{
+					cout<<"             Subject:  BST"<<"\t";
+					file2<<"              Subject:  BST"<<"\t";
+					}
+				else if (s == 9)
+					{
+					cout<<"             Subject:  ACC"<<"\t";
+			 		file2<<"              Subject:  ACC"<<"\t";
+					}
+				else if (s == 10)
+					{
+					cout<<"             Subject: PT"<<"\t";
+					file2<<"              Subject: PT"<<"\t";
+					}	
+                else if (s == 11)
+					{
+					cout<<"             Subject: ECO"<<"\t";
+					file2<<"              Subject: ECO"<<"\t";
+					}
+				
+
+		}
+		cout<<"\n";
+		file2<<"\n";
+        } 
+		for (int j = 0 ; j < 6 ; j++)
+		{
+			for (int k= 0 ; k<6 ; k++)
+			{
+				int l = t[i].period[k][j];
+				if (l == 99)
+				{
+					cout<<"Free\t";
+			    	file2<<"Free\t";
+				}
+				else if (l == -1 )
+				{
+				    cout<<"N/A \t";
+			    	file2<<"N/A \t";
+				}
+				else
+				{
+					for (int f = 0 ; f < noc; f++)
+					{
+						if (l == f)
+						{
+							cout<<c[f].std<<c[f].div<<"\t";
+							file2<<c[f].std<<c[f].div<<"\t";	
+						}
+					}
+				}
+			}
+			cout<<"\n";
+			file2<<"\n";
+		}
+		cout<<"\n\n";
+		file2<<"\n";
+		
+	}
+	file2.close();
+}
+/* 
+*
+*
+*END OF CODES
+*
+*/
