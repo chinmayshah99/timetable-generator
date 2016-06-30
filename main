@@ -1,116 +1,134 @@
 /*
- * Computer Science Project
- * Time Table Generator
- * Generates Class time table and teacher's time table.
+ *  Computer Science Project
+ *  high school Time Table Generator
+ *  Generates Class time table and teacher's time table.
+	
+	
+	works well with only 1 teacher/subject
+	
+	
  */
-#include <iostream> //Input Output Header file
-#include <ctime>
-#include <cstdlib>
-#include<fstream> //Header file for File Handling
 
+#include <iostream> 
+#include <time.h>
+#include <stdlib.h>
+#include<fstream> 
 using namespace std;
 
+
+char school_name[100];
+#define no_of_period_day 6
+#define no_of_day_in_week 6
+#define subject_class 6
+
+
+
+
 class class_code{
+	
 	public:
-		unsigned int prd[6][6] , std , sub[6][3];
+		/*
+			sub[subject_class][0] stores subject code
+			sub[subject_class][1] stores no of  class held/week of that particular subject; dynamic(incremets as program runs) 
+			sub[subject_class][2] stores no of  class held/day of that particular subject; dynamic (incremets as program runs)
+		*/
+		unsigned int prd[6][6] , std , sub[subject_class ][3];
 		char div;
-		int cstatus[6][6];  //Returns 0 if free and -1 if occupied
+		int class_status[6][6];  //Returns 0 if free and -1 if occupied
 		
 		
-                       //constructor ; intializes subcount/day and subcount/day to 0;  and intializes other values
-    class_code()
+/*	Intializing class values
+
+	intializes subcount/day to 0 
+ *	subcount/week to 0;  	
+ *	intializes period to random subj code - 101
+ 	mark class as free 
+ */
+        class_code()
 		{
-			for (int i=0; i<6 ; i++)
+			for (int i=0; i<no_of_day_in_week ; i++)
 			{
-				for (int j=0; j<6; j++)
+				for (int j=0; j<no_of_period_day; j++)
 				{
-					cstatus[i][j] = 0;
+					class_status[i][j] = 0;
 					prd[i][j] = 101;
 				}
 			}
-			for (int i=0; i<6 ; i++)
+			
+			for (int i=0; i<no_of_period_day ; i++)
 			{
 				sub[i][1] = 0;
+			}
+			
+			for (int i=0; i<no_of_day_in_week ; i++)
+			{
 				sub[i][2] = 0;
 			}
+			
 		}
 };
 
 class t_code{
-
-		unsigned int checkintime;
 	
 	public:
 		char name[30];
 		unsigned int sub_code;  //Teacher Code
-		int period[6][6];
-		int status[6][6];    //Returns 0 if free and -1 if occupied
-		
+		int period[no_of_period_day][no_of_day_in_week];
+		int status[no_of_period_day][no_of_day_in_week];    //Returns 0 if free and -1 if occupied
+
+/*
+	intializing teacher details
+	mark teacher as free - setting it to 0 
+	intializing class_ details to random number - 99
+	
+*/		
 		t_code()
 		{
-			for (int i=0; i<6 ; i++)
+			for (int i=0; i<no_of_day_in_week ; i++)
 			{
-				for (int j=0; j<6 ; j++)
+				for (int j=0; j<no_of_period_day ; j++)
 				{
 					status[i][j] = 0;		
 					period[i][j] = 99;
 				}
 			}		
 		}
-        void initialize()
-		{
-			unsigned int x ;
-			cin>>checkintime;
-			x = checkintime;
-			x--;
-			//cout<<"enter teacher code";
-			//cin>>teachercode;
-			if (x>0)
-			{
-				for (int i=0; i<6 ; i++)
-				{
-				for (int j=0; j<checkintime ; j++)
-				{
-					status[i][j] = -1;		
-				}
-				}
-			}
-		}	
+	
 };
 		
 
-//FUNCTION DECLARATIONS
 
 int if_class_accepts_that_code(unsigned int,int, class_code[]);
-int check(unsigned int , int, class_code[]);
-int check2(unsigned int k,int j,class_code c[]);
+int check_week(unsigned int , int, class_code[]);
+int check_day(unsigned int k,int j,class_code Class[]);
 int it_seems_ok_with_teacher(unsigned int , int , int ,t_code[] );
-void print(class_code c[],int noc);
-int generate(int k,class_code c[]  );
-void changedetails(class_code c[], int k);
-void printteacher(t_code t[], int ,class_code c[],int);
+void print(class_code Class[],int noc);
+int generate(int k,class_code Class[]  ); //generates random subject for assignment 
+void changedetails(class_code Class[], int );
+void printteacher(t_code t[], int ,class_code Class[],int);
 
 
 
-int noft; //NO OF TEACHERS ; GLOBAL VARIABLE
+int noft; //NO OF TEACHERS
 
 
 int main()
 {
-	cout<<"Ryan International School,Sanpada"<<endl;
-	cout<<"\n"<<"Subject Codes: \n"
+	cout<<"Enter school name"<<endl;
+	cin>>school_name;
+	cout<<"\nSubject Codes: \n"
 	<<" 01 Mathematics \n 02 Physics \n 03 Chemistry \n 04 Biology"
 	<<" \n 05 Computer Science \n 06 English \n 07 Physical Education "
-	<<"\n 08 Business Studies \n 09 Accounts \n 10 PT \n  11 Economics\n";
-	cout<<"\n";
+	<<"\n 08 Business Studies \n 09 Accounts \n 10 PT \n  11 Economics\n\n";
+	
+	
 	do
 	{
-  cout<<"ENTER THE NUMBER OF TEACHERS: (Minimum 6)"<<endl;  // Getting Teacher Details
+	cout<<"ENTER THE NUMBER OF TEACHERS: (Minimum 6)"<<endl;  // Getting Teacher Details
 	cin>>noft;
-  } while(noft<=5);
-  
+    }
+    while(noft<=5);
 	t_code t[noft];
-	
 	for (int i =0; i<noft; i++)
 	{   
 		cout<<"ENTER TEACHER'S NAME: \n";
@@ -118,24 +136,22 @@ int main()
 		cin>>t[i].name;
 		cout<<"ENTER SUBJECT CODE: \n ";
 		cin>>t[i].sub_code;
-	    cout<<"enter checkin time\n";
-		t[i].initialize();
+	
 	}
 	
 	cout<<"ENTER CLASS DETAILS:- \n";  // getting class details 
 	cout<<"ENTER NUMBER OF CLASSES: \n";
 	int noc; // NO OF CLASSES 
 	cin>>noc;
-	class_code c[noc]; // declaring class array
-	
+	class_code Class[noc]; // declaring class array
 	for (int i=0; i<noc;i++) //taking class details
 	{
 		cout<<"ENTER STD AND DIV: \n";
-		cin>>c[i].std>>c[i].div;
+		cin>>Class[i].std>>Class[i].div;
 		cout <<"ENTER SUBJECT CODES: \n";
-		for (int j=0; j<6 ; j++ )
+		for (int j=0; j<subject_class ; j++ )
 		{
-			cin>>c[i].sub[j][0];
+			cin>>Class[i].sub[subject_class][0];
 		}
 	}
 	
@@ -143,19 +159,20 @@ int main()
 	unsigned int x;
 	srand(time(0)); //for using rand()
 	
-	for (int k=0;k<noc;k++)
+	for (int noc_counter=0;noc_counter<noc;noc_counter++)
 	{
-		for (int i=0 ; i<6;i++)
+		label2:
+		for (int i=0 ; i<no_of_day_in_week;i++)
 		{
-			changedetails(c, k ); //clear daily count
+			changedetails(Class, noc_counter ); //clear daily count
 			
-			for (int j=0;j<6;j++)
+			for (int j=0;j<no_of_period_day;j++)
 			{
 				label:
 					{
-						x = generate(k,c);	// generating random subject code
+						x = generate(noc_counter,Class);	    // generating random subject code
 						
-						unsigned int a = check(x,k,c);      // check 1 for weekly condition check 
+						unsigned int a = check_week(x,noc_counter,Class);  // check  for weekly condition check
 						{
 						if (a == 77)
 							goto label;
@@ -163,32 +180,33 @@ int main()
 							a = a;
 						}
 						
-						unsigned int q = check2(a , k , c);     // check2 for daily condition 
+						unsigned int q = check_day(a , noc_counter , Class);         // check for daily condition 
 						{
 							if (q == 77)
 								goto label;
 							else 
 								q = q;
 						}
-			            unsigned int f = it_seems_ok_with_teacher( q,  i,  j, t);   //check if teacher is free
-                    	{
-                    	if (f == 77)
-							goto label;
-						else 
-							f = f;
+						unsigned int f = it_seems_ok_with_teacher( q,  i,  j, t);     //check if teacher is free	
+						{	
+							if (f == 77)
+								goto label;
+							else 
+								f = f;
 				        }
-						    //update details
+				        
+						//update details
 						{ 
-							c[k].cstatus[i][j] = f;  
-							c[k].prd[i][j] = a;
-							t[f].status[i][j] = -1;         // mark teacher as busy 
-							t[f].period[i][j] = k; 
+							Class[noc_counter].class_status[i][j] = f;  
+							Class[noc_counter].prd[i][j] = a;
+							t[f].status[i][j] = -1;           // mark teacher as busy 
+							t[f].period[i][j] = noc_counter; 
 							for (int p=0; p<6;p++) 
 							{
-								if (a == c[k].sub[p][0])
+								if (a == Class[noc_counter].sub[p][0])
 								{
-									c[k].sub[p][1]++;  // incremnet weekly count
-									c[k].sub[p][2]++;  // increment daily count 
+									Class[noc_counter].sub[p][1]++;  // incremnet weekly count
+									Class[noc_counter].sub[p][2]++;  // increment daily count 
 								}
 							}
 						}
@@ -197,23 +215,25 @@ int main()
 			}
 			
 		}
+	
+		
 	}
-	print(c,noc); //class timetable along with printing to file
-	printteacher( t, noft ,c,noc);   //teachers timetable along with printing to file
+	print(Class,noc); //class timetable along with printing to file
+	printteacher( t, noft ,Class,noc); 		//teachers timetable along with printing to file
 	return 0;
 }
 
 
-int check(unsigned int k,int j,class_code c[])
+int check_week(unsigned int k,int j,class_code Class[])
 {	
-	for (int i=0; i<6;i++)
+	for (int i=0; i<no_of_day_in_week;i++)
 	{	
-		if (k == c[j].sub[i][0])
+		if (k == Class[j].sub[i][0])
 		{
 			
 			if ( k == 1)
 			{
-				if (c[j].sub[i][1] < 9)
+				if (Class[j].sub[i][1] < 9)
 					return k;
 				else
 					return 77;
@@ -221,7 +241,7 @@ int check(unsigned int k,int j,class_code c[])
 			
 			else if (k ==2 || k==3 || k==4 || k==8 || k==9 || k==11)
 			{
-				if (c[j].sub[i][1] < 8)
+				if (Class[j].sub[i][1] < 8)
 					return k;
 				else 
 					return 77;
@@ -229,21 +249,21 @@ int check(unsigned int k,int j,class_code c[])
 			
 			else if ( k == 5 || k == 7 )
 			{
-				if (c[j].sub[i][1] < 7)
+				if (Class[j].sub[i][1] < 7)
 					return k;
 				else 
 					return 77;
 			}
 			else if (k == 6)
 			{
-				if (c[j].sub[i][1] < 5)
+				if (Class[j].sub[i][1] < 5)
 					return k;
 				else 
 					return 77;
 			}
 			else if (k == 10)
 			{
-				if (c[j].sub[i][1] < 2)
+				if (Class[j].sub[i][1] < 2)
 					return k;
 				else 
 					return 77;
@@ -255,22 +275,22 @@ int check(unsigned int k,int j,class_code c[])
 }
 
 
-int check2(unsigned int k,int j,class_code c[])
+int check_day(unsigned int k,int j,class_code Class[])
 {
-	for (int i = 0 ; i < 6 ; i ++)
+	for (int i = 0 ; i < no_of_period_day ; i ++)
 	{
-		if ( k == c[j].sub[i][0])
+		if ( k == Class[j].sub[i][0])
 		{
-            if (k == 1 || k ==2 || k==3 || k==4 || k==5 || k== 7 || k==8 || k==9 || k==11)
+		if (k == 1 || k ==2 || k==3 || k==4 || k==5 || k== 7 || k==8 || k==9 || k==11)
 			{
-				if (c[j].sub[i][2] < 3)
+				if (Class[j].sub[i][2] < 3)
 					return k;
 				else 
 					return 77;
 			}
 			else if ( k == 6 || k == 10 )
 			{
-				if (c[j].sub[i][2] < 2)
+				if (Class[j].sub[i][2] < 2)
 					return k;
 				else
 					return 77;
@@ -314,13 +334,13 @@ int it_seems_ok_with_teacher(unsigned int y, int a, int b, t_code t[])
 
 
 
-int generate(int k,class_code c[])
+int generate(int k,class_code Class[])
 {
-	int z = rand() % 6;
-	return c[k].sub[z][0];
+	int z = rand() % no_of_period_day;
+	return Class[k].sub[z][0];
 }
 
-void print(class_code c[],int noc)
+void print(class_code Class[],int noc)
 {
 	cout<<"\n";
 	ofstream file1;      //File Handling
@@ -328,69 +348,69 @@ void print(class_code c[],int noc)
 	for (int k = 0; k<noc;k++)
 	{
 		
-	    cout<<"\n"<<"      Ryan International School, Sanpada"<<endl;
-	    file1<<"\n"<<"      Ryan International School, Sanpada"<<endl;      
+	    cout<<"\n"<<school_name<<endl;
+	    file1<<"\n"<<school_name<<endl;      
                    //Writing into a file.
 	    cout<<"\n"<<"                 Time Table"<<endl;
 	    file1<<"\n"<<"                 Time Table"<<endl;
-		cout<<"\n"<<"                 Class: "<<c[k].std<<" "<<c[k].div<<endl;
-		file1<<"\n"<<"                 Class: "<<c[k].std<<" "<<c[k].div<<endl;
-		for (int j =0 ; j<6 ;j++)
+		cout<<"\n"<<"                 Class: "<<Class[k].std<<" "<<Class[k].div<<endl;
+		file1<<"\n"<<"                 Class: "<<Class[k].std<<" "<<Class[k].div<<endl;
+		for (int j =0 ; j<no_of_day_in_week ;j++)
 		{
-			for (int i =0 ;i<6;i++)
+			for (int i =0 ;i<no_of_period_day;i++)
 			{
-				if (c[k].prd[i][j] == 1)
+				if (Class[k].prd[i][j] == 1)
 					{
 					cout<<"MATH"<<"\t";
 					file1<<"MATH"<<"\t";
 					}
-				else if (c[k].prd[i][j] == 2)
+				else if (Class[k].prd[i][j] == 2)
 					{
 					cout<<"PHY"<<"\t";
 					file1<<"PHY"<<"\t";
 				    }
-				else if (c[k].prd[i][j] == 3 )
+				else if (Class[k].prd[i][j] == 3 )
 				    {
 					cout<<"CHEM"<<"\t";
 					file1<<"CHEM"<<"\t";
 				    }
-				else if (c[k].prd[i][j] == 4)
+				else if (Class[k].prd[i][j] == 4)
 					{
 					cout<<"BIO"<<"\t";
 					file1<<"BIO"<<"\t";
 				    }
-				else if (c[k].prd[i][j] == 5)
+				else if (Class[k].prd[i][j] == 5)
 					{
 					cout<<"COMP"<<"\t";
 					file1<<"COMP"<<"\t";
 				    }
 
-				else if (c[k].prd[i][j] == 6)
+				else if (Class[k].prd[i][j] == 6)
 					{
 						cout<<"ENG"<<"\t";
 						file1<<"ENG"<<"\t";
 					}
-				else if (c[k].prd[i][j] == 7)
+				else if (Class[k].prd[i][j] == 7)
 					{
 						cout<<"PEd"<<"\t";
 						file1<<"PEd"<<"\t";
 					}
-				else if (c[k].prd[i][j] == 8)
+				else if (Class[k].prd[i][j] == 8)
 					{
 						cout<<"BST"<<"\t";
 						file1<<"BST"<<"\t";
 					}
-				else if (c[k].prd[i][j] == 9)
+				else if (Class[k].prd[i][j] == 9)
 					{
 						cout<<"ACC"<<"\t";
 						file1<<"ACC"<<"\t";
 					}
-				else if (c[k].prd[i][j] == 10)
+				else if (Class[k].prd[i][j] == 10)
 					{
 						cout<<"PT"<<"\t";
 						file1<<"PT"<<"\t";
 					}
-                 else if (c[k].prd[i][j] == 11)
+                else if (Class[k].prd[i][j] == 11)
 					{
 						cout<<"ECO"<<"\t";
 						file1<<"ECO"<<"\t";
@@ -404,7 +424,7 @@ void print(class_code c[],int noc)
 		cout<<"\n";
 		for (int i = 0 ; i<6; i++)
 		{
-			cout<<c[k].sub[i][0]<<"\t"<<c[k].sub[i][1]<<" ";
+			cout<<Class[k].sub[i][0]<<"\t"<<Class[k].sub[i][1]<<" ";
 		}
 	}
 	cout<<"\n";
@@ -412,11 +432,11 @@ void print(class_code c[],int noc)
 
 }
 
-void changedetails(class_code c[], int k)
+void changedetails(class_code Class[], int k)
 {
-	for (int i = 0 ; i < 6 ; i++ )
+	for (int i = 0 ; i < no_of_period_day ; i++ )
 	{
-		c[k].sub[i][2] = 0;
+		Class[k].sub[i][2] = 0;
 	}
 }
 
@@ -428,7 +448,7 @@ void changedetails(class_code c[], int k)
 *
 *
 */
-void printteacher(t_code t[], int noft,class_code c[],int noc)
+void printteacher(t_code t[], int noft,class_code Class[],int noc)
 { 
     ofstream file2; //File Handling
     file2.open("Teacher.txt",ios::out);
@@ -441,92 +461,86 @@ void printteacher(t_code t[], int noft,class_code c[],int noc)
 		file2<<"             Teacher Name: "<<t[i].name<<" "<<endl;
 		file2<<"             Subject Code: "<<t[i].sub_code<<endl;
                        //Writing into a file
-		int s = t[i].sub_code;
+		int subcode = t[i].sub_code;
 		
-		{			if (s == 1)
+		{			if (subcode == 1)
 					{
 					cout<<"             Subject: MATH"<<"\t";
 					file2<<"               Subject: MATH"<<"\t";
 					}
-				else if (s == 2)
+				else if (subcode == 2)
 					{
 					cout<<"             Subject: PHY"<<"\t";
 					file2<<"              Subject: PHY"<<"\t";
 				    }
-				else if (s == 3 )
+				else if (subcode == 3 )
 				    {
 					cout<<"             Subject: CHEM"<<"\t";
 					file2<<"              Subject: CHEM"<<"\t";
 				    }
-				else if (s == 4)
+				else if (subcode == 4)
 					{
 					cout<<"             Subject: BIO"<<"\t";
 					file2<<"              Subject: BIO"<<"\t";
 				    }
-				else if (s == 5)
+				else if (subcode == 5)
 					{
 					cout<<"             Subject:  COMP"<<"\t";
 					file2<<"             Subject:  COMP"<<"\t";
 				    }
-				else if (s == 6)
+				else if (subcode == 6)
 					{
 					cout<<"             Subject:  ENG"<<"\t";
 					file2<<"              Subject:  ENG"<<"\t";
 					}
-				else if (s == 7)
+				else if (subcode == 7)
 					{
 					cout<<"             Subject:  PEd"<<"\t";
 					file2<<"              Subject:  PEd"<<"\t";
 					}
-				else if (s == 8)
+				else if (subcode == 8)
 					{
 					cout<<"             Subject:  BST"<<"\t";
 					file2<<"              Subject:  BST"<<"\t";
 					}
-				else if (s == 9)
+				else if (subcode == 9)
 					{
 					cout<<"             Subject:  ACC"<<"\t";
 			 		file2<<"              Subject:  ACC"<<"\t";
 					}
-				else if (s == 10)
+				else if (subcode == 10)
 					{
 					cout<<"             Subject: PT"<<"\t";
 					file2<<"              Subject: PT"<<"\t";
 					}	
-                else if (s == 11)
+                else if (subcode == 11)
 					{
 					cout<<"             Subject: ECO"<<"\t";
 					file2<<"              Subject: ECO"<<"\t";
 					}
-				
 
 		}
 		cout<<"\n";
 		file2<<"\n";
         } 
-		for (int j = 0 ; j < 6 ; j++)
+		for (int j = 0 ; j < no_of_day_in_week ; j++)
 		{
-			for (int k= 0 ; k<6 ; k++)
+			for (int k= 0 ; k<no_of_period_day ; k++)
 			{
-				int l = t[i].period[k][j];
-				if (l == 99)
+				int teacher_period_status = t[i].period[k][j];
+				if (teacher_period_status == 99)
 				{
 					cout<<"Free\t";
 			    	file2<<"Free\t";
 				}
-				else if (l == -1 )
-				{
-				    cout<<"N/A \t";
-			    	file2<<"N/A \t";
-				}
 				else
 				{
-					for (int f = 0 ; f < noc; f++)
+					for (int class_number = 0 ; class_number < noc; class_number++)
 					{
-						if (l == f)
+						if (teacher_period_status == class_number)
 						{
-							cout<<c[f].std<<c[f].div<<"\t";
-							file2<<c[f].std<<c[f].div<<"\t";	
+							cout<<Class[class_number].std<<Class[class_number].div<<"\t";
+							file2<<Class[class_number].std<<Class[class_number].div<<"\t";	
 						}
 					}
 				}
