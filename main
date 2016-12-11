@@ -7,6 +7,7 @@
 	works well with only 1 teacher/subject
 	
 	
+	
  */
 
 #include <iostream> 
@@ -19,7 +20,7 @@ using namespace std;
 char school_name[100];
 #define no_of_period_day 6
 #define no_of_day_in_week 6
-#define subject_class 6
+#deifine subject_class 6
 
 
 
@@ -27,12 +28,7 @@ char school_name[100];
 class class_code{
 	
 	public:
-		/*
-			sub[subject_class][0] stores subject code
-			sub[subject_class][1] stores no of  class held/week of that particular subject; dynamic(incremets as program runs) 
-			sub[subject_class][2] stores no of  class held/day of that particular subject; dynamic (incremets as program runs)
-		*/
-		unsigned int prd[6][6] , std , sub[subject_class ][3];
+		unsigned int prd[6][6] , std , sub[6][3];
 		char div;
 		int class_status[6][6];  //Returns 0 if free and -1 if occupied
 		
@@ -46,9 +42,9 @@ class class_code{
  */
         class_code()
 		{
-			for (int i=0; i<no_of_day_in_week ; i++)
+			for (int i=0; i<no_of_period_day ; i++)
 			{
-				for (int j=0; j<no_of_period_day; j++)
+				for (int j=0; j<6; j++)
 				{
 					class_status[i][j] = 0;
 					prd[i][j] = 101;
@@ -159,20 +155,20 @@ int main()
 	unsigned int x;
 	srand(time(0)); //for using rand()
 	
-	for (int noc_counter=0;noc_counter<noc;noc_counter++)
+	for (int k=0;k<noc;k++)
 	{
 		label2:
 		for (int i=0 ; i<no_of_day_in_week;i++)
 		{
-			changedetails(Class, noc_counter ); //clear daily count
+			changedetails(Class, k ); //clear daily count
 			
 			for (int j=0;j<no_of_period_day;j++)
 			{
 				label:
 					{
-						x = generate(noc_counter,Class);	    // generating random subject code
+						x = generate(k,Class);	    // generating random subject code
 						
-						unsigned int a = check_week(x,noc_counter,Class);  // check  for weekly condition check
+						unsigned int a = check_week(x,k,Class);  // check  for weekly condition check
 						{
 						if (a == 77)
 							goto label;
@@ -180,7 +176,7 @@ int main()
 							a = a;
 						}
 						
-						unsigned int q = check_day(a , noc_counter , Class);         // check for daily condition 
+						unsigned int q = check_day(a , k , Class);         // check for daily condition 
 						{
 							if (q == 77)
 								goto label;
@@ -197,16 +193,16 @@ int main()
 				        
 						//update details
 						{ 
-							Class[noc_counter].class_status[i][j] = f;  
-							Class[noc_counter].prd[i][j] = a;
+							Class[k].class_status[i][j] = f;  
+							Class[k].prd[i][j] = a;
 							t[f].status[i][j] = -1;           // mark teacher as busy 
-							t[f].period[i][j] = noc_counter; 
+							t[f].period[i][j] = k; 
 							for (int p=0; p<6;p++) 
 							{
-								if (a == Class[noc_counter].sub[p][0])
+								if (a == Class[k].sub[p][0])
 								{
-									Class[noc_counter].sub[p][1]++;  // incremnet weekly count
-									Class[noc_counter].sub[p][2]++;  // increment daily count 
+									Class[k].sub[p][1]++;  // incremnet weekly count
+									Class[k].sub[p][2]++;  // increment daily count 
 								}
 							}
 						}
