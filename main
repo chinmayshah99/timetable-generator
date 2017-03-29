@@ -12,14 +12,14 @@
 #include <iostream> 
 #include <time.h>
 #include <stdlib.h>
-#include<fstream> 
+#include <fstream> 
 using namespace std;
 
 
 char school_name[100];
 #define no_of_period_day 6
 #define no_of_day_in_week 6
-#define subject_class 6
+#define subject_class 6 //subject that each class learns erandom_generated_code. 11 A has 6  subjects
 
 
 
@@ -41,11 +41,12 @@ class class_code{
 
 	intializes subcount/day to 0 
  *	subcount/week to 0;  	
- *	intializes period to random subj code - 101
- 	mark class as free 
+ *	intializes period to random subj code 101
+ 	marks class as free 
  */
         class_code()
 		{
+			//in each day* total no of days
 			for (int i=0; i<no_of_day_in_week ; i++)
 			{
 				for (int j=0; j<no_of_period_day; j++)
@@ -79,7 +80,7 @@ class t_code{
 /*
 	intializing teacher details
 	mark teacher as free - setting it to 0 
-	intializing class_ details to random number - 99
+	intializing class_details to random number  99
 	
 */		
 		t_code()
@@ -102,14 +103,14 @@ int if_class_accepts_that_code(unsigned int,int, class_code[]);
 int check_week(unsigned int , int, class_code[]);
 int check_day(unsigned int k,int j,class_code Class[]);
 int it_seems_ok_with_teacher(unsigned int , int , int ,t_code[] );
-void print(class_code Class[],int noc);
-int generate(int k,class_code Class[]  ); //generates random subject for assignment 
+void print(class_code Class[],int total_class);
+int generate(int,class_code Class[]  ); //generates random subject for assignment 
 void changedetails(class_code Class[], int );
 void printteacher(t_code t[], int ,class_code Class[],int);
 
 
 
-int noft; //NO OF TEACHERS
+int total_teachers; //NO OF TEACHERS
 
 
 int main()
@@ -125,26 +126,26 @@ int main()
 	do
 	{
 	cout<<"ENTER THE NUMBER OF TEACHERS: (Minimum 6)"<<endl;  // Getting Teacher Details
-	cin>>noft;
+	cin>>total_teachers;
     }
-    while(noft<=5);
-	t_code t[noft];
-	for (int i =0; i<noft; i++)
+    while(total_teachers<=5);
+
+	t_code t[total_teachers];
+
+	for (int i =0; i<total_teachers; i++)
 	{   
 		cout<<"ENTER TEACHER'S NAME: \n";
-
 		cin>>t[i].name;
 		cout<<"ENTER SUBJECT CODE: \n ";
 		cin>>t[i].sub_code;
-	
 	}
 	
 	cout<<"ENTER CLASS DETAILS:- \n";  // getting class details 
 	cout<<"ENTER NUMBER OF CLASSES: \n";
-	int noc; // NO OF CLASSES 
-	cin>>noc;
-	class_code Class[noc]; // declaring class array
-	for (int i=0; i<noc;i++) //taking class details
+	int total_class; // NO OF CLASSES 
+	cin>>total_class;
+	class_code Class[total_class];
+	for (int i=0; i<total_class;i++) //taking class details
 	{
 		cout<<"ENTER STD AND DIV: \n";
 		cin>>Class[i].std>>Class[i].div;
@@ -156,57 +157,57 @@ int main()
 	}
 	
 	
-	unsigned int x;
+	unsigned int random_generated_code;
 	srand(time(0)); //for using rand()
 	
-	for (int noc_counter=0;noc_counter<noc;noc_counter++)
+	for (int class_counter=0; class_counter<total_class; class_counter++)
 	{
 		label2:
-		for (int i=0 ; i<no_of_day_in_week;i++)
+		for (int day_counter=0 ; day_counter<no_of_day_in_week; day_counter++)
 		{
-			changedetails(Class, noc_counter ); //clear daily count
+			changedetails(Class, class_counter ); //clear daily count
 			
-			for (int j=0;j<no_of_period_day;j++)
+			for (int period_counter=0; period_counter<no_of_period_day; period_counter++)
 			{
 				label:
 					{
-						x = generate(noc_counter,Class);	    // generating random subject code
+						random_generated_code = generate(class_counter,Class);	    // generating random subject code
 						
-						unsigned int a = check_week(x,noc_counter,Class);  // check  for weekly condition check
+						unsigned int week_check = check_week(random_generated_code,class_counter,Class);  // check  for weekly condition check
 						{
-						if (a == 77)
+						if (week_check == 77)
 							goto label;
 						else 
-							a = a;
+							week_check = week_check;
 						}
 						
-						unsigned int q = check_day(a , noc_counter , Class);         // check for daily condition 
+						unsigned int day_check = check_day(week_check , class_counter , Class);         // check for daily condition 
 						{
-							if (q == 77)
+							if (day_check == 77)
 								goto label;
 							else 
-								q = q;
+								day_check = day_check;
 						}
-						unsigned int f = it_seems_ok_with_teacher( q,  i,  j, t);     //check if teacher is free	
+						unsigned int teacher_code = it_seems_ok_with_teacher( day_check,  day_counter,  period_counter, t);     //check if teacher is free	
 						{	
-							if (f == 77)
+							if (teacher_code == 77)
 								goto label;
 							else 
-								f = f;
+								teacher_code = teacher_code;
 				        }
 				        
 						//update details
 						{ 
-							Class[noc_counter].class_status[i][j] = f;  
-							Class[noc_counter].prd[i][j] = a;
-							t[f].status[i][j] = -1;           // mark teacher as busy 
-							t[f].period[i][j] = noc_counter; 
+							Class[class_counter].class_status[day_counter][period_counter] = teacher_code;  
+							Class[class_counter].prd[day_counter][period_counter] = week_check;
+							t[teacher_code].status[day_counter][period_counter] = -1;           // mark teacher as busy 
+							t[teacher_code].period[day_counter][period_counter] = class_counter; 
 							for (int p=0; p<6;p++) 
 							{
-								if (a == Class[noc_counter].sub[p][0])
+								if (week_check == Class[class_counter].sub[p][0])
 								{
-									Class[noc_counter].sub[p][1]++;  // incremnet weekly count
-									Class[noc_counter].sub[p][2]++;  // increment daily count 
+									Class[class_counter].sub[p][1]++;  // incremnet weekly count
+									Class[class_counter].sub[p][2]++;  // increment daily count 
 								}
 							}
 						}
@@ -218,22 +219,22 @@ int main()
 	
 		
 	}
-	print(Class,noc); //class timetable along with printing to file
-	printteacher( t, noft ,Class,noc); 		//teachers timetable along with printing to file
+	print(Class,total_class); //class timetable along with printing to file
+	printteacher( t, total_teachers ,Class,total_class); 		//teachers timetable along with printing to file
 	return 0;
 }
 
 
 int check_week(unsigned int k,int j,class_code Class[])
 {	
-	for (int i=0; i<no_of_day_in_week;i++)
+	for (int day_counter=0; day_counter<no_of_day_in_week;day_counter++)
 	{	
-		if (k == Class[j].sub[i][0])
+		if (k == Class[j].sub[day_counter][0])
 		{
 			
 			if ( k == 1)
 			{
-				if (Class[j].sub[i][1] < 9)
+				if (Class[j].sub[day_counter][1] < 9)
 					return k;
 				else
 					return 77;
@@ -241,7 +242,7 @@ int check_week(unsigned int k,int j,class_code Class[])
 			
 			else if (k ==2 || k==3 || k==4 || k==8 || k==9 || k==11)
 			{
-				if (Class[j].sub[i][1] < 8)
+				if (Class[j].sub[day_counter][1] < 8)
 					return k;
 				else 
 					return 77;
@@ -249,21 +250,21 @@ int check_week(unsigned int k,int j,class_code Class[])
 			
 			else if ( k == 5 || k == 7 )
 			{
-				if (Class[j].sub[i][1] < 7)
+				if (Class[j].sub[day_counter][1] < 7)
 					return k;
 				else 
 					return 77;
 			}
 			else if (k == 6)
 			{
-				if (Class[j].sub[i][1] < 5)
+				if (Class[j].sub[day_counter][1] < 5)
 					return k;
 				else 
 					return 77;
 			}
 			else if (k == 10)
 			{
-				if (Class[j].sub[i][1] < 2)
+				if (Class[j].sub[day_counter][1] < 2)
 					return k;
 				else 
 					return 77;
@@ -305,7 +306,7 @@ int check_day(unsigned int k,int j,class_code Class[])
 int it_seems_ok_with_teacher(unsigned int y, int a, int b, t_code t[])
 {
 	int i = 0;
-	while(i <= noft)
+	while(i <= total_teachers)
 	
 	{
 		if (t[i].sub_code == y)
@@ -321,7 +322,7 @@ int it_seems_ok_with_teacher(unsigned int y, int a, int b, t_code t[])
 			continue;
 		}
 		}
-		else if (i == noft)
+		else if (i == total_teachers)
 			return 77;
 		else 
 		{
@@ -340,12 +341,12 @@ int generate(int k,class_code Class[])
 	return Class[k].sub[z][0];
 }
 
-void print(class_code Class[],int noc)
+void print(class_code Class[],int total_class)
 {
 	cout<<"\n";
 	ofstream file1;      //File Handling
-	file1.open("Project.txt",ios::out);
-	for (int k = 0; k<noc;k++)
+	file1.open("Project.trandom_generated_codet",ios::out);
+	for (int k = 0; k<total_class;k++)
 	{
 		
 	    cout<<"\n"<<school_name<<endl;
@@ -448,11 +449,11 @@ void changedetails(class_code Class[], int k)
 *
 *
 */
-void printteacher(t_code t[], int noft,class_code Class[],int noc)
+void printteacher(t_code t[], int total_teachers,class_code Class[],int total_class)
 { 
     ofstream file2; //File Handling
-    file2.open("Teacher.txt",ios::out);
-	for (int i = 0; i< noft ; i++)
+    file2.open("Teacher.trandom_generated_codet",ios::out);
+	for (int i = 0; i< total_teachers ; i++)
 	{
 		{
 		
@@ -535,7 +536,7 @@ void printteacher(t_code t[], int noft,class_code Class[],int noc)
 				}
 				else
 				{
-					for (int class_number = 0 ; class_number < noc; class_number++)
+					for (int class_number = 0 ; class_number < total_class; class_number++)
 					{
 						if (teacher_period_status == class_number)
 						{
@@ -557,6 +558,6 @@ void printteacher(t_code t[], int noft,class_code Class[],int noc)
 /* 
 *
 *
-*END OF CODES
+*END OF CODE
 *
 */
